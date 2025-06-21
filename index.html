@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minecraft包加密/解密工具</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="main_ui.css">
+<style>
+/* 全局CSS变量和基础样式 */
+:root {
+  --primary: #000;
+  --success: #22c55e;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --bg: #f9fafb;
+  --card-bg: #ffffff;
+  --border: #e5e7eb;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --transition: all 0.2s ease;
+}
+
+[data-theme="dark"] {
+  --primary: #ffffff;
+  --text: #f9fafb;
+  --text-secondary: #d1d5db;
+  --bg: #1f2937;
+  --card-bg: #374151;
+  --border: #4b5563;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--text-secondary);
+  color: white;
+}
+
+
+
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.btn-outline:hover {
+  background: var(--bg);
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+}
+
+.btn-full {
+  width: 100%;
+  justify-content: center;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.logo {
+  width: 48px;
+  height: 48px;
+  background: var(--primary);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 包信息样式 */
+.pack-info {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 1rem;
+  border: 1px solid var(--border);
+}
+
+.pack-info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.pack-info-item:last-child {
+  border-bottom: none;
+}
+
+.pack-info-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.pack-info-value {
+  color: var(--text);
+  max-width: 60%;
+  text-align: right;
+}
+
+/* 扩展样式 */
+.mobile-warning-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.mobile-warning-content {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+}
+
+.mobile-warning-icon {
+    font-size: 4rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.mobile-warning-content h2 {
+    margin-bottom: 1rem;
+    color: var(--text);
+}
+
+.mobile-warning-content ul {
+    list-style: none;
+    padding: 0;
+}
+
+.mobile-warning-content li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.header {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.brand-text h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    margin: 0;
+}
+
+.brand-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    font-weight: 400;
+}
+
+.main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+}
+
+.content-area {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.tab-container {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 1rem 2rem;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: var(--transition);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.tab-button.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.tab-button:hover {
+    color: var(--text);
+    background: var(--bg);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.upload-zone {
+    background: var(--bg);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.upload-zone:hover {
+    border-color: var(--primary);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.upload-zone.dragover {
+    border-color: var(--primary);
+    background: rgba(0, 0, 0, 0.05);
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 4rem;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+}
+
+.upload-zone h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+}
+
+.upload-zone p {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.upload-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.file-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.file-item:last-child {
+    border-bottom: none;
+}
+
+.file-item:hover {
+    background: var(--bg);
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.file-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.file-details h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text);
+}
+
+.file-details p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.stat-card {
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--primary);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    margin: 0 auto 1rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.progress {
+    width: 100%;
+    height: 12px;
+    background: var(--bg);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #000, #000);
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.action-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-online {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-offline {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast {
+    max-width: 400px;
+    padding: 1rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    animation: slideIn 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toast-success {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.toast-error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.toast-info {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+    
+    .brand {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .brand-text h1 {
+        font-size: 2rem;
+    }
+    
+    .upload-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+</style>
+</head>
+<body>
+<!-- 移动端警告遮罩 -->
+<div class="mobile-warning-overlay" id="mobileWarning" style="display: none;">
+<div class="mobile-warning-content">
+    <div class="mobile-warning-icon">
+        <i class="fas fa-mobile-alt"></i>
+    </div>
+    <h2>移动端不支持</h2>
+    <p>抱歉，此工具需要在桌面端浏览器中使用，因为需要处理文件夹和大量文件操作。</p>
+    <div style="margin: 1.5rem 0;">
+        <h3>为什么不支持移动端？</h3>
+        <ul style="text-align: left; margin-top: 1rem;">
+            <li><i class="fas fa-folder"></i> 需要文件夹拖拽功能</li>
+            <li><i class="fas fa-file-archive"></i> 需要处理ZIP文件</li>
+            <li><i class="fas fa-memory"></i> 需要大量内存处理文件</li>
+            <li><i class="fas fa-download"></i> 需要批量下载功能</li>
+        </ul>
+    </div>
+    <button class="btn btn-primary" onclick="closeMobileWarning()">
+        <i class="fas fa-times"></i>
+        我了解了
+    </button>
+</div>
+</div>
+
+<!-- Header -->
+<div class="header">
+<div class="header-content">
+    <div class="brand">
+        <div class="logo"><i class="fas fa-shield-alt"></i></div>
+        <div class="brand-text">
+            <h1>Minecraft包加密/解密工具</h1>
+            <div class="brand-subtitle">安全、快速地加密或解密您的Minecraft资源包和行为包</div>
+        </div>
+        <div id="api-status" class="status-indicator status-offline">
+            <i class="fas fa-circle"></i>
+            检查中...
+        </div>
+    </div>
+</div>
+</div>
+<!-- Main Content -->
+<div class="main-container">
+<!-- Content Area -->
+<div class="content-area">
+    <!-- Tab Navigation -->
+    <div class="tab-container">
+        <button class="tab-button active" onclick="switchTab('encrypt')">
+            <i class="fas fa-lock"></i>
+            加密包
+        </button>
+        <button class="tab-button" onclick="switchTab('decrypt')">
+            <i class="fas fa-unlock"></i>
+            解密包
+        </button>
+    </div>
+
+    <!-- Encrypt Tab Content -->
+    <div id="encrypt-tab" class="tab-content active">
+        <!-- Upload Section for Encryption -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-upload"></i>
+                    选择要加密的包文件
+                </div>
+            </div>
+            <div class="upload-zone" id="encryptUploadZone">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>拖拽文件夹到这里</h3>
+                <p>或者点击下方按钮选择文件</p>
+                <div class="upload-buttons">
+                    <button class="btn btn-primary" onclick="document.getElementById('encryptFolderInput').click()">
+                        <i class="fas fa-folder-open"></i>
+                        选择文件夹
+                    </button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('encryptFileInput').click()">
+                        <i class="fas fa-file-archive"></i>
+                        选择ZIP文件
+                    </button>
+                </div>
+                <input type="file" id="encryptFolderInput" webkitdirectory multiple style="display: none;">
+                <input type="file" id="encryptFileInput" accept=".zip,.mcpack" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Decrypt Tab Content -->
+    <div id="decrypt-tab" class="tab-content">
+        <!-- Upload Section for Decryption -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-upload"></i>
+                    选择要解密的包文件
+                </div>
+            </div>
+            <div class="upload-zone" id="decryptUploadZone">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>拖拽加密包到这里</h3>
+                <p>支持加密的ZIP包或文件夹</p>
+                <div class="upload-buttons">
+                    <button class="btn btn-primary" onclick="document.getElementById('decryptFolderInput').click()">
+                        <i class="fas fa-folder-open"></i>
+                        选择文件夹
+                    </button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('decryptFileInput').click()">
+                        <i class="fas fa-file-archive"></i>
+                        选择ZIP文件
+                    </button>
+                </div>
+                <input type="file" id="decryptFolderInput" webkitdirectory multiple style="display: none;">
+                <input type="file" id="decryptFileInput" accept=".zip,.mcpack" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <!-- File List Section -->
+    <div class="card" id="fileListSection" style="display: none;">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-list"></i>
+                已选择的文件
+            </div>
+            <span class="badge badge-success">
+                <span id="fileCount">0</span> 个文件
+            </span>
+        </div>
+        <div class="file-list" id="fileList"></div>
+    </div>
+
+    <!-- Progress Section -->
+    <div class="card" id="progressSection" style="display: none;">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-spinner fa-spin"></i>
+                处理进度
+            </div>
+            <span id="progressText">准备中...</span>
+        </div>
+        <div class="progress">
+            <div class="progress-bar" id="progressFill"></div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="card" id="resultsSection" style="display: none;">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-chart-bar"></i>
+                <span id="resultTitle">处理结果</span>
+            </div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-file-code"></i>
+                </div>
+                <div class="stat-value" id="processedFiles">0</div>
+                <div class="stat-label" id="processedLabel">处理文件数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-files"></i>
+                </div>
+                <div class="stat-value" id="totalFiles">0</div>
+                <div class="stat-label">总文件数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-cube"></i>
+                </div>
+                <div class="stat-value" id="packageName">-</div>
+                <div class="stat-label">包名称</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+                <div class="stat-value" id="operationKey">-</div>
+                <div class="stat-label">使用密钥</div>
+            </div>
+        </div>
+        <div id="packDetailsInfo" class="pack-info" style="margin-top: 1rem;"></div>
+    </div>
+</div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Settings Section -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-cog"></i>
+                        设置
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="label">自定义密钥 (可选)</label>
+                    <input type="text" class="input" id="customKey" placeholder="留空将自动生成">
+                    <small class="text-secondary">32字符的字母数字组合</small>
+                    <button class="btn btn-outline btn-full" onclick="generateKey()">
+                        <i class="fas fa-random"></i>
+                        生成随机密钥
+                    </button>
+                </div>
+            </div>
+
+    <!-- Action Area -->
+    <div class="action-area">
+        <button class="btn btn-primary btn-lg btn-full" id="processBtn" onclick="processFiles()" disabled>
+            <i class="fas fa-lock"></i>
+            <span id="processBtnText">开始加解密</span>
+        </button>
+        <button class="btn btn-success btn-lg btn-full hidden" id="downloadBtn" onclick="downloadResult()">
+            <i class="fas fa-download"></i>
+            下载结果
+        </button>
+        <button class="btn btn-warning btn-full" onclick="cleanupFiles()">
+            <i class="fas fa-trash"></i>
+            清理临时文件
+        </button>
+    </div>
+</div>
+</div>
+
+<!-- Theme Toggle -->
+
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// API 基础URL
+const API_BASE = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') 
+    ? 'http://localhost:5000' 
+    : window.location.origin;
+
+let selectedFiles = [];
+let currentDownloadFilename = null;
+let currentMode = 'encrypt'; // 'encrypt' or 'decrypt'
+
+// 初始化
+document.addEventListener('DOMContentLoaded', function() {
+    setupFileUpload();
+    checkApiStatus();
+    checkMobileDevice();
+    switchTab('encrypt'); // 默认加密模式
+});
+
+// 检查移动设备
+function checkMobileDevice() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+        document.getElementById('mobileWarning').style.display = 'flex';
+    }
+}
+
+function closeMobileWarning() {
+    document.getElementById('mobileWarning').style.display = 'none';
+}
+
+// 切换标签页
+function switchTab(mode) {
+    currentMode = mode;
+    
+    // 更新标签按钮状态
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.tab-button[onclick="switchTab('${mode}')"]`).classList.add('active');
+    
+    // 更新内容显示
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.getElementById(`${mode}-tab`).classList.add('active');
+    
+    // 更新UI文本
+    if (mode === 'encrypt') {
+        document.getElementById('settingsTitle').textContent = '加密设置';
+        document.getElementById('keyLabel').textContent = '自定义密钥 (可选)';
+        document.getElementById('keyHint').textContent = '32字符的字母数字组合';
+        document.getElementById('processBtnText').textContent = '开始加密';
+        document.getElementById('processBtn').innerHTML = '<i class="fas fa-lock"></i> 开始加密';
+        document.getElementById('customKey').placeholder = '留空将自动生成';
+    } else {
+        document.getElementById('settingsTitle').textContent = '解密设置';
+        document.getElementById('keyLabel').textContent = '解密密钥 (可选)';
+        document.getElementById('keyHint').textContent = '留空使用默认密钥 s5s5ejuDru4uchuF2drUFuthaspAbepE';
+        document.getElementById('processBtnText').textContent = '开始解密';
+        document.getElementById('processBtn').innerHTML = '<i class="fas fa-unlock"></i> 开始解密';
+        document.getElementById('customKey').placeholder = '留空将使用默认密钥';
+    }
+    
+    // 重置选择的文件
+    selectedFiles = [];
+    updateProcessButton();
+    hideResults();
+}
+
+
+
+// 文件上传设置
+function setupFileUpload() {
+    // 加密模式的文件上传
+    setupUploadZone('encryptUploadZone', ['encryptFolderInput', 'encryptFileInput']);
+    // 解密模式的文件上传
+    setupUploadZone('decryptUploadZone', ['decryptFolderInput', 'decryptFileInput']);
+}
+
+function setupUploadZone(zoneId, inputIds) {
+    const uploadZone = document.getElementById(zoneId);
+    const inputs = inputIds.map(id => document.getElementById(id));
+
+    // 文件选择事件
+    inputs.forEach(input => {
+        input.addEventListener('change', handleFileSelect);
+    });
+
+    // 拖拽功能
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+            handleDroppedFiles(files);
+        }
+    });
+}
+
+function handleFileSelect(event) {
+    const files = Array.from(event.target.files);
+    selectedFiles = files;
+    displayFileList(files);
+    updateProcessButton();
+}
+
+function handleDroppedFiles(files) {
+    selectedFiles = files;
+    displayFileList(files);
+    updateProcessButton();
+}
+
+function displayFileList(files) {
+    const fileListSection = document.getElementById('fileListSection');
+    const fileList = document.getElementById('fileList');
+    const fileCount = document.getElementById('fileCount');
+
+    fileList.innerHTML = '';
+    fileCount.textContent = files.length;
+
+    files.slice(0, 20).forEach(file => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        
+        fileItem.innerHTML = `
+            <div class="file-info">
+                <div class="file-icon">
+                    <i class="fas ${getFileIcon(file.name)}"></i>
+                </div>
+                <div class="file-details">
+                    <h4>${file.name}</h4>
+                    <p>${formatFileSize(file.size)}</p>
+                </div>
+            </div>
+        `;
+        
+        fileList.appendChild(fileItem);
+    });
+
+    if (files.length > 20) {
+        const moreItem = document.createElement('div');
+        moreItem.className = 'file-item';
+        moreItem.innerHTML = `
+            <div class="file-info">
+                <div class="file-icon">
+                    <i class="fas fa-ellipsis-h"></i>
+                </div>
+                <div class="file-details">
+                    <h4>还有 ${files.length - 20} 个文件...</h4>
+                    <p>点击查看全部</p>
+                </div>
+            </div>
+        `;
+        fileList.appendChild(moreItem);
+    }
+
+    fileListSection.style.display = files.length > 0 ? 'block' : 'none';
+}
+
+function getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    switch (ext) {
+        case 'json': return 'fa-file-code';
+        case 'png': case 'jpg': case 'jpeg': return 'fa-image';
+        case 'zip': case 'mcpack': case 'mcworld': case 'mctemplate': return 'fa-file-archive';
+        default: return 'fa-file';
+    }
+}
+
+function updateProcessButton() {
+    const processBtn = document.getElementById('processBtn');
+    processBtn.disabled = selectedFiles.length === 0;
+}
+
+function hideResults() {
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('downloadBtn').classList.add('hidden');
+    document.getElementById('fileListSection').style.display = 'none';
+    currentDownloadFilename = null;
+}
+
+// 检查API状态
+async function checkApiStatus() {
+    const statusElement = document.getElementById('api-status');
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/health`);
+        const data = await response.json();
+        
+        if (data.status === 'ok') {
+            statusElement.className = 'status-indicator status-online';
+            statusElement.innerHTML = '<i class="fas fa-circle"></i> 服务在线';
+        } else {
+            throw new Error('API返回错误状态');
+        }
+    } catch (error) {
+        statusElement.className = 'status-indicator status-offline';
+        statusElement.innerHTML = '<i class="fas fa-circle"></i> 服务离线';
+        console.error('API状态检查失败:', error);
+    }
+}
+
+// 生成密钥
+async function generateKey() {
+    const customKeyInput = document.getElementById('customKey');
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/generate-key`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            customKeyInput.value = data.key;
+            showToast('密钥生成成功！', 'success');
+        } else {
+            throw new Error(data.error || '生成密钥失败');
+        }
+    } catch (error) {
+        showToast('生成密钥失败: ' + error.message, 'error');
+        console.error('生成密钥失败:', error);
+    }
+}
+
+// 处理文件（加密或解密）
+async function processFiles() {
+    if (selectedFiles.length === 0) {
+        showToast('请先选择文件', 'error');
+        return;
+    }
+
+    const customKey = document.getElementById('customKey').value;
+    const progressSection = document.getElementById('progressSection');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const processBtn = document.getElementById('processBtn');
+    const resultsSection = document.getElementById('resultsSection');
+
+    // 重置UI
+    resultsSection.style.display = 'none';
+    progressSection.style.display = 'block';
+    processBtn.disabled = true;
+    
+    const actionText = currentMode === 'encrypt' ? '加密' : '解密';
+    processBtn.innerHTML = `<span class="spinner"></span> ${actionText}中...`;
+
+    try {
+        // 创建FormData
+        const formData = new FormData();
+        
+        // 添加文件
+        selectedFiles.forEach(file => {
+            formData.append('files', file);
+        });
+        
+        // 添加自定义密钥
+        if (customKey.trim()) {
+            formData.append('custom_key', customKey.trim());
+        }
+
+        // 更新进度
+        updateProgress(10, `正在上传文件...`);
+
+        // 选择API端点
+        const endpoint = currentMode === 'encrypt' ? '/api/encrypt' : '/api/decrypt';
+
+        // 发送请求
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+            method: 'POST',
+            body: formData
+        });
+
+        updateProgress(50, `正在${actionText}文件...`);
+
+        const data = await response.json();
+
+        if (data.success) {
+            updateProgress(100, `${actionText}完成！`);
+            
+            setTimeout(() => {
+                displayProcessResult(data);
+                progressSection.style.display = 'none';
+            }, 1000);
+        } else {
+            throw new Error(data.error || `${actionText}失败`);
+        }
+
+    } catch (error) {
+        console.error(`${actionText}失败:`, error);
+        showToast(`${actionText}失败: ` + error.message, 'error');
+        progressSection.style.display = 'none';
+    } finally {
+        // 恢复按钮
+        processBtn.disabled = false;
+        const icon = currentMode === 'encrypt' ? 'fa-lock' : 'fa-unlock';
+        const text = currentMode === 'encrypt' ? '开始加密' : '开始解密';
+        processBtn.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
+    }
+}
+
+// 更新进度条
+function updateProgress(percent, text) {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    progressFill.style.width = percent + '%';
+    progressText.textContent = text;
+}
+
+// 显示处理结果
+function displayProcessResult(data) {
+    const resultsSection = document.getElementById('resultsSection');
+    const fileListSection = document.getElementById('fileListSection');
+    const processedFiles = document.getElementById('processedFiles');
+    const totalFiles = document.getElementById('totalFiles');
+    const packageName = document.getElementById('packageName');
+    const operationKey = document.getElementById('operationKey');
+    const packDetailsInfo = document.getElementById('packDetailsInfo');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const resultTitle = document.getElementById('resultTitle');
+    const processedLabel = document.getElementById('processedLabel');
+
+    // 隐藏文件列表窗口
+    fileListSection.style.display = 'none';
+
+    // 更新标题和标签
+    if (currentMode === 'encrypt') {
+        resultTitle.textContent = '加密结果';
+        processedLabel.textContent = '加密文件数';
+        processedFiles.textContent = data.encrypted_files || 0;
+    } else {
+        resultTitle.textContent = '解密结果';
+        processedLabel.textContent = '解密文件数';
+        processedFiles.textContent = data.decrypted_files || 0;
+    }
+
+    // 更新统计数据
+    totalFiles.textContent = data.total_files || 0;
+    
+    if (data.pack_info && data.pack_info.name) {
+        packageName.textContent = data.pack_info.name.substring(0, 10) + (data.pack_info.name.length > 10 ? '...' : '');
+        packageName.title = data.pack_info.name;
+    } else {
+        packageName.textContent = '未知';
+    }
+    
+    const keyValue = data.content_key || 's5s5ejuDru4uchuF2drUFuthaspAbepE';
+    operationKey.textContent = keyValue.substring(0, 8) + '...';
+    operationKey.title = keyValue;
+
+    // 构建详细信息
+    let detailsHTML = '';
+    
+    if (data.pack_info) {
+        const info = data.pack_info;
+        detailsHTML += `
+            <div class="pack-info-item">
+                <span class="pack-info-label">包名称</span>
+                <span class="pack-info-value">${info.name || '未知'}</span>
+            </div>
+            <div class="pack-info-item">
+                <span class="pack-info-label">描述</span>
+                <span class="pack-info-value">${info.description || '无'}</span>
+            </div>
+            <div class="pack-info-item">
+                <span class="pack-info-label">版本</span>
+                <span class="pack-info-value">${info.version || '0.0.0'}</span>
+            </div>
+            <div class="pack-info-item">
+                <span class="pack-info-label">UUID</span>
+                <span class="pack-info-value" style="font-family: monospace; word-break: break-all;">${info.uuid || '未知'}</span>
+            </div>
+        `;
+    }
+    
+    detailsHTML += `
+        <div class="pack-info-item">
+            <span class="pack-info-label">使用密钥</span>
+            <span class="pack-info-value" style="font-family: monospace; word-break: break-all;">${keyValue}</span>
+        </div>
+    `;
+
+    packDetailsInfo.innerHTML = detailsHTML;
+
+    // 设置下载功能
+    if (data.download_filename) {
+        currentDownloadFilename = data.download_filename;
+        downloadBtn.classList.remove('hidden');
+    }
+
+    resultsSection.style.display = 'block';
+    const actionText = currentMode === 'encrypt' ? '加密' : '解密';
+    showToast(`包${actionText}成功！`, 'success');
+}
+
+// 下载结果
+function downloadResult() {
+    if (currentDownloadFilename) {
+        downloadFile(currentDownloadFilename);
+    } else {
+        showToast('没有可下载的文件', 'error');
+    }
+}
+
+// 下载文件
+async function downloadFile(filename) {
+    try {
+        const response = await fetch(`${API_BASE}/api/download/${filename}`);
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            showToast('文件下载开始', 'success');
+        } else {
+            throw new Error('下载失败');
+        }
+    } catch (error) {
+        showToast('下载失败: ' + error.message, 'error');
+        console.error('下载失败:', error);
+    }
+}
+
+// 清理文件
+async function cleanupFiles() {
+    try {
+        const response = await fetch(`${API_BASE}/api/cleanup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast('临时文件清理完成', 'success');
+        } else {
+            throw new Error(data.error || '清理失败');
+        }
+    } catch (error) {
+        showToast('清理失败: ' + error.message, 'error');
+        console.error('清理失败:', error);
+    }
+}
+
+// 显示Toast通知
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    let icon = 'fa-info-circle';
+    if (type === 'success') icon = 'fa-check-circle';
+    else if (type === 'error') icon = 'fa-exclamation-triangle';
+    else if (type === 'warning') icon = 'fa-exclamation-triangle';
+    
+    toast.innerHTML = `
+        <i class="fas ${icon}"></i>
+        ${message}
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// 格式化文件大小
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+</script>
+</body>
+</html>
