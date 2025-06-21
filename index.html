@@ -23,7 +23,7 @@
   --radius-lg: 12px;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --transition: all 0.2s ease;
+  --transition: all 0.2 ease;
 }
 
 [data-theme="dark"] {
@@ -177,7 +177,7 @@ body {
   border: 2px solid transparent;
   border-top: 2px solid currentColor;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 1 linear infinite;
 }
 
 @keyframes spin {
@@ -875,7 +875,7 @@ body {
 <script>
 // API 基础URL
 const API_BASE = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') 
-    ? 'http://localhost:5000' 
+    ? 'https://fuzzy-rotary-phone-97q4w5wr59gxfprj9-5000.app.github.dev' 
     : window.location.origin;
 
 let selectedFiles = [];
