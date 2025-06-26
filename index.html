@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -7,637 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Minecraft包加密/解密工具</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="main_ui.css">
-<script src="./jszip.min.js"></script>
-<style>
-/* 全局CSS变量和基础样式 */
-:root {
-  --primary: #000;
-  --success: #22c55e;
-  --error: #ef4444;
-  --warning: #f59e0b;
-  --info: #3b82f6;
-  --text: #1f2937;
-  --text-secondary: #6b7280;
-  --bg: #f9fafb;
-  --card-bg: #ffffff;
-  --border: #e5e7eb;
-  --radius: 8px;
-  --radius-lg: 12px;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --transition: all 0.2 ease;
-}
-
-[data-theme="dark"] {
-  --primary: #ffffff;
-  --text: #f9fafb;
-  --text-secondary: #d1d5db;
-  --bg: #1f2937;
-  --card-bg: #374151;
-  --border: #4b5563;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-}
-
-
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: var(--radius);
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  font-size: 0.875rem;
-}
-
-.btn-primary {
-  background: var(--primary);
-  color: white;
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background: var(--text-secondary);
-  color: white;
-}
-
-
-
-
-.btn-outline {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-
-.btn-outline:hover {
-  background: var(--bg);
-}
-
-.btn-lg {
-  padding: 1rem 2rem;
-  font-size: 1rem;
-}
-
-.btn-full {
-  width: 100%;
-  justify-content: center;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--card-bg);
-  color: var(--text);
-  font-size: 0.875rem;
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.label {
-  font-weight: 500;
-  color: var(--text);
-}
-
-.text-secondary {
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-}
-
-.badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.badge-success {
-  background: rgba(34, 197, 94, 0.1);
-  color: var(--success);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-}
-
-.hidden {
-  display: none !important;
-}
-
-.logo {
-  width: 48px;
-  height: 48px;
-  background: var(--primary);
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.5rem;
-}
-
-
-
-.spinner {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 1 linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* 包信息样式 */
-.pack-info {
-  background: var(--bg);
-  border-radius: var(--radius);
-  padding: 1rem;
-  border: 1px solid var(--border);
-}
-
-.pack-info-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.pack-info-item:last-child {
-  border-bottom: none;
-}
-
-.pack-info-label {
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.pack-info-value {
-  color: var(--text);
-  max-width: 60%;
-  text-align: right;
-}
-
-/* 扩展样式 */
-.mobile-warning-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-}
-
-.mobile-warning-content {
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
-    max-width: 400px;
-    width: 90%;
-    text-align: center;
-    box-shadow: var(--shadow-md);
-}
-
-.mobile-warning-icon {
-    font-size: 4rem;
-    color: var(--primary);
-    margin-bottom: 1rem;
-}
-
-.mobile-warning-content h2 {
-    margin-bottom: 1rem;
-    color: var(--text);
-}
-
-.mobile-warning-content ul {
-    list-style: none;
-    padding: 0;
-}
-
-.mobile-warning-content li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    color: var(--text-secondary);
-}
-
-.header {
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border);
-    padding: 1.5rem 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    backdrop-filter: blur(10px);
-}
-
-.header-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-.brand-text h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text);
-    display: flex;
-    margin: 0;
-}
-
-.brand-subtitle {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    display: flex;
-    font-weight: 400;
-}
-
-.main-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 2rem;
-}
-
-.content-area {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.tab-container {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
-}
-
-.tab-button {
-    flex: 1;
-    padding: 1rem 2rem;
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: var(--transition);
-    font-size: 1rem;
-    font-weight: 500;
-}
-
-.tab-button.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-}
-
-.tab-button:hover {
-    color: var(--text);
-    background: var(--bg);
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-.upload-zone {
-    background: var(--bg);
-    border: 2px dashed var(--border);
-    border-radius: var(--radius-lg);
-    padding: 3rem 2rem;
-    text-align: center;
-    transition: var(--transition);
-    cursor: pointer;
-}
-
-.upload-zone:hover {
-    border-color: var(--primary);
-    background: rgba(0, 0, 0, 0.02);
-}
-
-.upload-zone.dragover {
-    border-color: var(--primary);
-    background: rgba(0, 0, 0, 0.05);
-    transform: scale(1.02);
-}
-
-.upload-icon {
-    font-size: 4rem;
-    color: var(--primary);
-    margin-bottom: 1.5rem;
-}
-
-.upload-zone h3 {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-    color: var(--text);
-}
-
-.upload-zone p {
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
-}
-
-.upload-buttons {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.file-list {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.file-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    border-bottom: 1px solid var(--border);
-    transition: var(--transition);
-}
-
-.file-item:last-child {
-    border-bottom: none;
-}
-
-.file-item:hover {
-    background: var(--bg);
-}
-
-.file-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.file-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--primary);
-    border-radius: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-}
-
-.file-details h4 {
-    margin: 0;
-    font-size: 1rem;
-    color: var(--text);
-}
-
-.file-details p {
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
-}
-
-.stat-card {
-    background: var(--bg);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    text-align: center;
-    border: 1px solid var(--border);
-    transition: var(--transition);
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.stat-icon {
-    width: 48px;
-    height: 48px;
-    background: var(--primary);
-    border-radius: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.25rem;
-    margin: 0 auto 1rem;
-}
-
-.stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 0.5rem;
-}
-
-.stat-label {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-}
-
-.progress {
-    width: 100%;
-    height: 12px;
-    background: var(--bg);
-    border-radius: 999px;
-    overflow: hidden;
-    margin-top: 1rem;
-}
-
-.progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #000, #000);
-    transition: width 0.3 ease;
-    width: 0%;
-}
-
-.action-area {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.status-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius);
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.status-online {
-    background: rgba(34, 197, 94, 0.1);
-    color: var(--success);
-    border: 1px solid rgba(34, 197, 94, 0.2);
-}
-
-.status-offline {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--error);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.toast {
-    max-width: 400px;
-    padding: 1rem;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-md);
-    animation: slideIn 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.toast-success {
-    background: rgba(34, 197, 94, 0.1);
-    color: var(--success);
-    border: 1px solid rgba(34, 197, 94, 0.2);
-}
-
-.toast-error {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--error);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.toast-info {
-    background: rgba(59, 130, 246, 0.1);
-    color: var(--info);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-
-@media (max-width: 768px) {
-    .main-container {
-        grid-template-columns: 1fr;
-        padding: 1rem;
-    }
-    
-    .brand {
-        flex-direction: column;
-        text-align: center;
-        gap: 1rem;
-    }
-    
-    .brand-text h1 {
-        font-size: 2rem;
-    }
-    
-    .upload-buttons {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<link rel="stylesheet" href="./main.css">
 </head>
 <body>
 <!-- 移动端警告遮罩 -->
@@ -671,7 +41,7 @@ body {
         <div class="logo"><i class="fas fa-shield-alt"></i></div>
         <div class="brand-text">
             <h1>Minecraft包加密/解密工具</h1>
-            <div class="brand-subtitle">安全、快速地加密或解密您的Minecraft资源包和行为包</div>
+            <div class="brand-subtitle">智能ENT密钥匹配，安全快速地加密或解密您的Minecraft资源包和行为包</div>
         </div>
         <div id="api-status" class="status-indicator status-offline">
             <i class="fas fa-circle"></i>
@@ -680,6 +50,7 @@ body {
     </div>
 </div>
 </div>
+
 <!-- Main Content -->
 <div class="main-container">
 <!-- Content Area -->
@@ -694,11 +65,18 @@ body {
             <i class="fas fa-unlock"></i>
             解密包
         </button>
+        <button class="tab-button" onclick="switchTab('ent')">
+            <i class="fas fa-key"></i>
+            ENT解密
+        </button>
+        <button class="tab-button" onclick="switchTab('options')">
+            <i class="fas fa-cog"></i>
+            Options.txt
+        </button>
     </div>
 
     <!-- Encrypt Tab Content -->
     <div id="encrypt-tab" class="tab-content active">
-        <!-- Upload Section for Encryption -->
         <div class="card">
             <div class="card-header">
                 <div class="card-title">
@@ -706,31 +84,32 @@ body {
                     选择要加密的包文件
                 </div>
             </div>
-            <div class="upload-zone" id="encryptUploadZone">
-                <div class="upload-icon">
-                    <i class="fas fa-cloud-upload-alt"></i>
+            <div class="card-content">
+                <div class="upload-zone" id="encryptUploadZone">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>拖拽文件夹到这里</h3>
+                    <p>或者点击下方按钮选择文件</p>
+                    <div class="upload-buttons">
+                        <button class="btn btn-primary" onclick="document.getElementById('encryptFolderInput').click()">
+                            <i class="fas fa-folder-open"></i>
+                            选择文件夹
+                        </button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('encryptFileInput').click()">
+                            <i class="fas fa-file-archive"></i>
+                            选择ZIP文件
+                        </button>
+                    </div>
+                    <input type="file" id="encryptFolderInput" webkitdirectory multiple style="display: none;">
+                    <input type="file" id="encryptFileInput" accept=".zip,.mcpack" style="display: none;">
                 </div>
-                <h3>拖拽文件夹到这里</h3>
-                <p>或者点击下方按钮选择文件</p>
-                <div class="upload-buttons">
-                    <button class="btn btn-primary" onclick="document.getElementById('encryptFolderInput').click()">
-                        <i class="fas fa-folder-open"></i>
-                        选择文件夹
-                    </button>
-                    <button class="btn btn-secondary" onclick="document.getElementById('encryptFileInput').click()">
-                        <i class="fas fa-file-archive"></i>
-                        选择ZIP文件
-                    </button>
-                </div>
-                <input type="file" id="encryptFolderInput" webkitdirectory multiple style="display: none;">
-                <input type="file" id="encryptFileInput" accept=".zip,.mcpack" style="display: none;">
             </div>
         </div>
     </div>
 
     <!-- Decrypt Tab Content -->
     <div id="decrypt-tab" class="tab-content">
-        <!-- Upload Section for Decryption -->
         <div class="card">
             <div class="card-header">
                 <div class="card-title">
@@ -738,24 +117,180 @@ body {
                     选择要解密的包文件
                 </div>
             </div>
-            <div class="upload-zone" id="decryptUploadZone">
-                <div class="upload-icon">
-                    <i class="fas fa-cloud-upload-alt"></i>
+            <div class="card-content">
+                <div class="upload-zone" id="decryptUploadZone">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>拖拽加密包到这里</h3>
+                    <p>系统会自动匹配最佳密钥进行解密</p>
+                    <div class="upload-buttons">
+                        <button class="btn btn-primary" onclick="document.getElementById('decryptFolderInput').click()">
+                            <i class="fas fa-folder-open"></i>
+                            选择文件夹
+                        </button>
+                        <button class="btn btn-secondary" onclick="document.getElementById('decryptFileInput').click()">
+                            <i class="fas fa-file-archive"></i>
+                            选择ZIP文件
+                        </button>
+                    </div>
+                    <input type="file" id="decryptFolderInput" webkitdirectory multiple style="display: none;">
+                    <input type="file" id="decryptFileInput" accept=".zip,.mcpack" style="display: none;">
                 </div>
-                <h3>拖拽加密包到这里</h3>
-                <p>支持加密的ZIP包或文件夹</p>
-                <div class="upload-buttons">
-                    <button class="btn btn-primary" onclick="document.getElementById('decryptFolderInput').click()">
-                        <i class="fas fa-folder-open"></i>
-                        选择文件夹
-                    </button>
-                    <button class="btn btn-secondary" onclick="document.getElementById('decryptFileInput').click()">
-                        <i class="fas fa-file-archive"></i>
-                        选择ZIP文件
-                    </button>
+                
+                <!-- 密钥数据库状态 -->
+                <div class="form-group" style="margin-top: 2rem;">
+                    <label class="label">
+                        <i class="fas fa-database"></i>
+                        密钥数据库状态
+                    </label>
+                    <div class="key-database-status" id="keyDatabaseStatus">
+                        <div class="status-item">
+                            <span class="status-label">ENT密钥数量</span>
+                            <span class="status-value" id="dbKeyCount">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">匹配算法</span>
+                            <span class="status-value">UUID智能匹配</span>
+                        </div>
+                    </div>
+                    <small class="text-secondary">
+                        💡 建议先解密ENT文件建立密钥库，系统会自动匹配正确的密钥
+                    </small>
                 </div>
-                <input type="file" id="decryptFolderInput" webkitdirectory multiple style="display: none;">
-                <input type="file" id="decryptFileInput" accept=".zip,.mcpack" style="display: none;">
+                
+                <!-- ENT授权文件上传区域 -->
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label class="label">
+                        <i class="fas fa-key"></i>
+                        快速ENT密钥导入
+                    </label>
+                    <div class="upload-zone" id="decryptEntUploadZone" style="padding: 1.5rem; border-style: dashed;">
+                        <div class="upload-icon" style="font-size: 2rem; margin-bottom: 1rem;">
+                            <i class="fas fa-file-code"></i>
+                        </div>
+                        <h4>直接拖拽ENT文件快速导入密钥</h4>
+                        <p style="margin-bottom: 1rem;">ENT密钥会自动保存到密钥库，解密时自动匹配</p>
+                        <button class="btn btn-outline" onclick="document.getElementById('decryptEntInput').click()">
+                            <i class="fas fa-file-upload"></i>
+                            选择ENT文件
+                        </button>
+                        <input type="file" id="decryptEntInput" accept=".ent" style="display: none;">
+                    </div>
+                </div>
+                
+                <!-- Minecraft账户ID -->
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="label">Minecraft账户ID (ENT解密用)</label>
+                    <input type="text" class="input" id="decryptMinecraftId" placeholder="如果ENT文件加密，需要输入账户ID">
+                    <small class="text-secondary">通常在游戏设置或options.txt中找到</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ENT Decrypt Tab Content -->
+    <div id="ent-tab" class="tab-content">
+        <div class="card ent-info-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-key"></i>
+                    ENT授权文件解密
+                </div>
+                <div style="margin-left: auto;">
+                    <span class="badge badge-info">
+                        <i class="fas fa-info-circle"></i>
+                        自动建立密钥库
+                    </span>
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="ent-workflow-info" style="margin-bottom: 2rem; padding: 1.5rem; background: var(--info-bg); border-radius: var(--radius); border: 1px solid var(--info);">
+                    <h3 style="margin-bottom: 1rem; color: var(--info);">
+                        <i class="fas fa-lightbulb"></i>
+                        智能密钥匹配工作流程
+                    </h3>
+                    <div class="workflow-steps">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <strong>解密ENT文件</strong>
+                                <p>提取所有包密钥并自动保存到密钥数据库</p>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <strong>解密加密包</strong>
+                                <p>系统自动读取包UUID，匹配正确密钥进行解密</p>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <strong>一键解密成功</strong>
+                                <p>无需手动输入密钥，全自动智能匹配</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="upload-zone" id="entUploadZone">
+                    <div class="upload-icon">
+                        <i class="fas fa-file-code"></i>
+                    </div>
+                    <h3>上传ENT授权文件</h3>
+                    <p>支持加密和未加密的.ent文件，将自动提取并保存所有密钥</p>
+                    <div class="upload-buttons">
+                        <button class="btn btn-primary" onclick="document.getElementById('entFileInput').click()">
+                            <i class="fas fa-file-upload"></i>
+                            选择ENT文件
+                        </button>
+                    </div>
+                    <input type="file" id="entFileInput" accept=".ent" style="display: none;">
+                </div>
+                
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label class="label">Minecraft账户ID (可选)</label>
+                    <input type="text" class="input" id="minecraftId" placeholder="用于解密加密的ENT文件">
+                    <small class="text-secondary">通常在游戏设置或options.txt中找到，如果ENT文件是加密的，需要此信息</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Options.txt Tab Content -->
+    <div id="options-tab" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-cog"></i>
+                    Options.txt 配置文件
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="upload-zone" id="optionsUploadZone">
+                    <div class="upload-icon">
+                        <i class="fas fa-file-text"></i>
+                    </div>
+                    <h3>上传Options.txt文件</h3>
+                    <p>从Minecraft配置文件中提取账户信息用于ENT解密</p>
+                    <div class="upload-buttons">
+                        <button class="btn btn-primary" onclick="document.getElementById('optionsFileInput').click()">
+                            <i class="fas fa-file-upload"></i>
+                            选择Options.txt
+                        </button>
+                    </div>
+                    <input type="file" id="optionsFileInput" accept=".txt" style="display: none;">
+                </div>
+                
+                <div class="options-info" id="optionsInfo" style="display: none;">
+                    <h4 style="margin-bottom: 0.5rem;">
+                        <i class="fas fa-info-circle"></i>
+                        配置文件信息
+                    </h4>
+                    <div id="optionsDetails"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -771,7 +306,9 @@ body {
                 <span id="fileCount">0</span> 个文件
             </span>
         </div>
-        <div class="file-list" id="fileList"></div>
+        <div class="card-content">
+            <div class="file-list" id="fileList"></div>
+        </div>
     </div>
 
     <!-- Progress Section -->
@@ -783,8 +320,10 @@ body {
             </div>
             <span id="progressText">准备中...</span>
         </div>
-        <div class="progress">
-            <div class="progress-bar" id="progressFill"></div>
+        <div class="card-content">
+            <div class="progress">
+                <div class="progress-bar" id="progressFill"></div>
+            </div>
         </div>
     </div>
 
@@ -795,38 +334,70 @@ body {
                 <i class="fas fa-chart-bar"></i>
                 <span id="resultTitle">处理结果</span>
             </div>
-        </div>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-file-code"></i>
-                </div>
-                <div class="stat-value" id="processedFiles">0</div>
-                <div class="stat-label" id="processedLabel">处理文件数</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-files"></i>
-                </div>
-                <div class="stat-value" id="totalFiles">0</div>
-                <div class="stat-label">总文件数</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-cube"></i>
-                </div>
-                <div class="stat-value" id="packageName">-</div>
-                <div class="stat-label">包名称</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-key"></i>
-                </div>
-                <div class="stat-value" id="operationKey">-</div>
-                <div class="stat-label">使用密钥</div>
+            <div id="keyMatchingStatus" class="key-matching-indicator" style="display: none;">
+                <i class="fas fa-check-circle"></i>
+                <span id="keyMatchingText">智能匹配成功</span>
             </div>
         </div>
-        <div id="packDetailsInfo" class="pack-info" style="margin-top: 1rem;"></div>
+        <div class="card-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-code"></i>
+                    </div>
+                    <div class="stat-value" id="processedFiles">0</div>
+                    <div class="stat-label" id="processedLabel">处理文件数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-files"></i>
+                    </div>
+                    <div class="stat-value" id="totalFiles">0</div>
+                    <div class="stat-label">总文件数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <div class="stat-value" id="packageName">-</div>
+                    <div class="stat-label">包名称</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div class="stat-value" id="operationKey">-</div>
+                    <div class="stat-label" id="keyLabel">使用密钥</div>
+                </div>
+            </div>
+            <div id="packDetailsInfo" class="pack-info" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
+
+    <!-- ENT Results Section -->
+    <div class="card" id="entResultsSection" style="display: none;">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-key"></i>
+                密钥已保存到数据库
+            </div>
+            <span class="badge badge-success">
+                <span id="keyCount">0</span> 个密钥
+            </span>
+        </div>
+        <div class="card-content">
+            <div class="database-save-notice" style="margin-bottom: 1.5rem; padding: 1rem; background: var(--success-bg); border: 1px solid var(--success); border-radius: var(--radius);">
+                <h4 style="margin-bottom: 0.5rem; color: var(--success);">
+                    <i class="fas fa-database"></i>
+                    密钥已自动保存
+                </h4>
+                <p style="margin: 0; color: var(--success);">
+                    所有提取的密钥已保存到密钥数据库。现在您可以直接上传加密包进行解密，系统会自动匹配正确的密钥。
+                </p>
+            </div>
+            <div id="entResultInfo" class="pack-info" style="margin-bottom: 1rem;"></div>
+            <div class="key-list" id="keyList"></div>
+        </div>
     </div>
 </div>
 
@@ -840,16 +411,141 @@ body {
                         设置
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="label">自定义密钥 (可选)</label>
-                    <input type="text" class="input" id="customKey" placeholder="留空将自动生成">
-                    <small class="text-secondary">32字符的字母数字组合</small>
-                    <button class="btn btn-outline btn-full" onclick="generateKey()">
-                        <i class="fas fa-random"></i>
-                        生成随机密钥
-                    </button>
+                <div class="card-content">
+                    <!-- 加密模式：自定义密钥 -->
+                    <div class="form-group" id="customKeyGroup">
+                        <label class="label">自定义密钥 (可选)</label>
+                        <input type="text" class="input" id="customKey" placeholder="留空将自动生成">
+                        <small class="text-secondary">32字符的字母数字组合</small>
+                        <button class="btn btn-outline btn-full" onclick="generateKey()">
+                            <i class="fas fa-random"></i>
+                            生成随机密钥
+                        </button>
+                    </div>
+                    
+                    <!-- 解密模式：智能匹配设置 -->
+                    <div class="form-group hidden" id="decryptSmartGroup">
+                        <label class="label">
+                            <i class="fas fa-magic"></i>
+                            智能解密设置
+                        </label>
+                        
+                        <div class="smart-decrypt-info" style="margin: 1rem 0; padding: 1rem; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border);">
+                            <h4 style="margin-bottom: 0.5rem; color: var(--text);">
+                                <i class="fas fa-brain"></i>
+                                密钥选择优先级
+                            </h4>
+                            <div class="priority-list">
+                                <div class="priority-item">
+                                    <span class="priority-number">1</span>
+                                    <span class="priority-text">用户自定义密钥</span>
+                                </div>
+                                <div class="priority-item">
+                                    <span class="priority-number">2</span>
+                                    <span class="priority-text">UUID匹配密钥</span>
+                                </div>
+                                <div class="priority-item">
+                                    <span class="priority-number">3</span>
+                                    <span class="priority-text">默认皮肤密钥</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label class="label">手动密钥覆盖 (高级)</label>
+                            <input type="text" class="input" id="manualDecryptKey" placeholder="留空使用智能匹配">
+                            <small class="text-secondary">仅在智能匹配失败时手动指定</small>
+                        </div>
+                        
+                        <!-- 密钥库状态 -->
+                        <div class="key-library-status" style="margin-top: 1rem;">
+                            <div class="status-header">
+                                <i class="fas fa-database"></i>
+                                密钥库状态
+                            </div>
+                            <div class="status-content" id="keyLibraryContent">
+                                <div class="status-row">
+                                    <span>ENT密钥数量</span>
+                                    <span id="sidebarKeyCount">0</span>
+                                </div>
+                                <div class="status-row">
+                                    <span>数据库状态</span>
+                                    <span id="dbStatus">空</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group hidden" id="entOptionsGroup">
+                        <label class="label">输出格式</label>
+                        <select class="input" id="entOutputFormat">
+                            <option value="json">JSON格式</option>
+                            <option value="keys_db">Keys.db格式</option>
+                            <option value="both">两种格式</option>
+                        </select>
+                        <small class="text-secondary">选择密钥导出格式</small>
+                    </div>
+
+                    <div class="form-group hidden" id="optionsGroup">
+                        <label class="label">账户信息</label>
+                        <div id="accountInfo" class="options-preview" style="max-height: 150px;">
+                            <div style="text-align: center; color: var(--text-secondary);">
+                                请先上传options.txt文件
+                            </div>
+                        </div>
+                        <button class="btn btn-outline btn-full" id="useOptionsBtn" onclick="useOptionsForEnt()" disabled>
+                            <i class="fas fa-arrow-right"></i>
+                            用于ENT解密
+                        </button>
+                    </div>
                 </div>
             </div>
+
+    <!-- Key Database Management -->
+    <div class="card" style="margin-bottom: 1rem;">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-database"></i>
+                密钥库管理
+            </div>
+            <span class="badge badge-info">
+                <span id="keyLibraryCount">0</span> 个密钥
+            </span>
+        </div>
+        <div class="card-content">
+            <div class="key-management-buttons">
+                <button class="btn btn-outline btn-half" onclick="exportKeyDatabase()">
+                    <i class="fas fa-download"></i>
+                    导出密钥库
+                </button>
+                <button class="btn btn-outline btn-half" onclick="document.getElementById('importKeyInput').click()">
+                    <i class="fas fa-upload"></i>
+                    导入密钥库
+                </button>
+                <input type="file" id="importKeyInput" accept=".json" style="display: none;" onchange="importKeyDatabase(event)">
+            </div>
+            <div class="key-database-summary" id="keyDatabaseSummary">
+                <div class="summary-item">
+                    <span class="summary-label">总密钥数</span>
+                    <span class="summary-value" id="totalKeysCount">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">最后更新</span>
+                    <span class="summary-value" id="lastUpdateTime">从未</span>
+                </div>
+            </div>
+            <div class="key-database-actions">
+                <button class="btn btn-danger btn-small" onclick="clearKeyDatabase()">
+                    <i class="fas fa-trash"></i>
+                    清空密钥库
+                </button>
+                <button class="btn btn-info btn-small" onclick="viewKeyDatabase()">
+                    <i class="fas fa-eye"></i>
+                    查看密钥
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Action Area -->
     <div class="action-area">
@@ -869,9 +565,6 @@ body {
 </div>
 </div>
 
-<!-- Theme Toggle -->
-
-
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -882,14 +575,28 @@ const API_BASE = 'https://www.menthamc.club:5000';
 let selectedFiles = [];
 let extractedFiles = [];
 let currentDownloadFilename = null;
-let currentMode = 'encrypt'; // 'encrypt' or 'decrypt'
+let currentMode = 'encrypt'; // 'encrypt', 'decrypt', 'ent', or 'options'
 let isProcessingZip = false;
+let optionsData = null; // 存储options.txt数据
+let entKeys = []; // 存储ENT解析出的密钥
+let keyDatabaseCount = 0; // 密钥数据库中的密钥数量
+
+// 密钥库管理
+let keyDatabase = {
+    keys: {}, // uuid -> key 映射
+    metadata: {
+        totalKeys: 0,
+        lastUpdate: null,
+        version: '1.0'
+    }
+};
 
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
     setupFileUpload();
     checkApiStatus();
     checkMobileDevice();
+    updateKeyDatabaseStatus(); // 更新密钥库状态
     switchTab('encrypt'); // 默认加密模式
 });
 
@@ -917,22 +624,340 @@ function switchTab(mode) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     document.getElementById(`${mode}-tab`).classList.add('active');
     
+    // 显示/隐藏设置组
+    document.getElementById('customKeyGroup').style.display = 
+        mode === 'encrypt' ? 'block' : 'none';
+    document.getElementById('decryptSmartGroup').style.display = 
+        mode === 'decrypt' ? 'block' : 'none';
+    document.getElementById('entOptionsGroup').style.display = 
+        mode === 'ent' ? 'block' : 'none';
+    document.getElementById('optionsGroup').style.display = 
+        mode === 'options' ? 'block' : 'none';
+    
     // 更新UI文本
     if (mode === 'encrypt') {
         document.getElementById('processBtnText').textContent = '开始加密';
         document.getElementById('processBtn').innerHTML = '<i class="fas fa-lock"></i> 开始加密';
         document.getElementById('customKey').placeholder = '留空将自动生成';
-    } else {
-        document.getElementById('processBtnText').textContent = '开始解密';
-        document.getElementById('processBtn').innerHTML = '<i class="fas fa-unlock"></i> 开始解密';
-        document.getElementById('customKey').placeholder = '留空将使用默认密钥';
+    } else if (mode === 'decrypt') {
+        document.getElementById('processBtnText').textContent = '智能解密';
+        document.getElementById('processBtn').innerHTML = '<i class="fas fa-magic"></i> 智能解密';
+        document.getElementById('manualDecryptKey').placeholder = '留空使用智能匹配';
+    } else if (mode === 'ent') {
+        document.getElementById('processBtnText').textContent = '解析ENT文件';
+        document.getElementById('processBtn').innerHTML = '<i class="fas fa-key"></i> 解析ENT文件';
+    } else if (mode === 'options') {
+        document.getElementById('processBtnText').textContent = '解析Options.txt';
+        document.getElementById('processBtn').innerHTML = '<i class="fas fa-cog"></i> 解析Options.txt';
     }
     
-    // 重置选择的文件
+    // 重置文件选择
     selectedFiles = [];
     extractedFiles = [];
+    
     updateProcessButton();
-    hideResults();
+    
+    // 只在切换到非Options模式时隐藏结果
+    if (mode !== 'options') {
+        hideResults();
+    }
+}
+
+// 更新密钥数据库状态
+function updateKeyDatabaseStatus() {
+    const dbKeyCountEl = document.getElementById('dbKeyCount');
+    const sidebarKeyCountEl = document.getElementById('sidebarKeyCount');
+    const dbStatusEl = document.getElementById('dbStatus');
+    const keyLibraryCountEl = document.getElementById('keyLibraryCount');
+    const totalKeysCountEl = document.getElementById('totalKeysCount');
+    const lastUpdateTimeEl = document.getElementById('lastUpdateTime');
+    
+    const totalKeys = keyDatabase.metadata.totalKeys;
+    
+    if (dbKeyCountEl) {
+        dbKeyCountEl.textContent = totalKeys;
+    }
+    if (sidebarKeyCountEl) {
+        sidebarKeyCountEl.textContent = totalKeys;
+    }
+    if (dbStatusEl) {
+        dbStatusEl.textContent = totalKeys > 0 ? '活跃' : '空';
+    }
+    if (keyLibraryCountEl) {
+        keyLibraryCountEl.textContent = totalKeys;
+    }
+    if (totalKeysCountEl) {
+        totalKeysCountEl.textContent = totalKeys;
+    }
+    if (lastUpdateTimeEl) {
+        if (keyDatabase.metadata.lastUpdate) {
+            const updateTime = new Date(keyDatabase.metadata.lastUpdate);
+            lastUpdateTimeEl.textContent = updateTime.toLocaleString();
+        } else {
+            lastUpdateTimeEl.textContent = '从未';
+        }
+    }
+}
+
+// 添加密钥到数据库
+function addKeysToDatabase(keys) {
+    if (!keys || keys.length === 0) return;
+    
+    let addedCount = 0;
+    keys.forEach(key => {
+        const uuid = key.id || key.uuid;
+        const contentKey = key.contentKey || key.content_key;
+        
+        if (uuid && contentKey) {
+            // 检查是否已存在
+            if (!keyDatabase.keys[uuid]) {
+                keyDatabase.keys[uuid] = {
+                    uuid: uuid,
+                    key: contentKey,
+                    addedTime: new Date().toISOString(),
+                    source: 'ENT'
+                };
+                addedCount++;
+            }
+        }
+    });
+    
+    keyDatabase.metadata.totalKeys = Object.keys(keyDatabase.keys).length;
+    keyDatabase.metadata.lastUpdate = new Date().toISOString();
+    
+    updateKeyDatabaseStatus();
+    
+    if (addedCount > 0) {
+        showToast(`成功添加 ${addedCount} 个新密钥到密钥库`, 'success');
+    }
+}
+
+// 导出密钥库
+function exportKeyDatabase() {
+    try {
+        if (keyDatabase.metadata.totalKeys === 0) {
+            showToast('密钥库为空，无法导出', 'warning');
+            return;
+        }
+        
+        const exportData = {
+            ...keyDatabase,
+            exportTime: new Date().toISOString(),
+            exportVersion: '1.0'
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `minecraft_key_database_${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        
+        URL.revokeObjectURL(link.href);
+        
+        showToast(`成功导出 ${keyDatabase.metadata.totalKeys} 个密钥`, 'success');
+        
+    } catch (error) {
+        showToast('导出密钥库失败: ' + error.message, 'error');
+    }
+}
+
+// 导入密钥库
+async function importKeyDatabase(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    try {
+        const text = await file.text();
+        const importData = JSON.parse(text);
+        
+        // 验证导入数据格式
+        if (!importData.keys || !importData.metadata) {
+            throw new Error('无效的密钥库文件格式');
+        }
+        
+        // 合并密钥（避免覆盖现有密钥）
+        let importedCount = 0;
+        let updatedCount = 0;
+        
+        Object.keys(importData.keys).forEach(uuid => {
+            const importKey = importData.keys[uuid];
+            if (keyDatabase.keys[uuid]) {
+                // 更新现有密钥
+                keyDatabase.keys[uuid] = {
+                    ...keyDatabase.keys[uuid],
+                    ...importKey,
+                    updatedTime: new Date().toISOString()
+                };
+                updatedCount++;
+            } else {
+                // 添加新密钥
+                keyDatabase.keys[uuid] = {
+                    ...importKey,
+                    importedTime: new Date().toISOString()
+                };
+                importedCount++;
+            }
+        });
+        
+        // 更新元数据
+        keyDatabase.metadata.totalKeys = Object.keys(keyDatabase.keys).length;
+        keyDatabase.metadata.lastUpdate = new Date().toISOString();
+        
+        updateKeyDatabaseStatus();
+        
+        showToast(`导入完成！新增 ${importedCount} 个密钥，更新 ${updatedCount} 个密钥`, 'success');
+        
+    } catch (error) {
+        showToast('导入密钥库失败: ' + error.message, 'error');
+    }
+    
+    // 清空文件输入
+    event.target.value = '';
+}
+
+// 清空密钥库
+function clearKeyDatabase() {
+    if (keyDatabase.metadata.totalKeys === 0) {
+        showToast('密钥库已经为空', 'info');
+        return;
+    }
+    
+    if (confirm(`确定要清空密钥库吗？这将删除所有 ${keyDatabase.metadata.totalKeys} 个密钥，且无法恢复！`)) {
+        keyDatabase.keys = {};
+        keyDatabase.metadata.totalKeys = 0;
+        keyDatabase.metadata.lastUpdate = new Date().toISOString();
+        
+        updateKeyDatabaseStatus();
+        showToast('密钥库已清空', 'info');
+    }
+}
+
+// 查看密钥库
+function viewKeyDatabase() {
+    if (keyDatabase.metadata.totalKeys === 0) {
+        showToast('密钥库为空', 'info');
+        return;
+    }
+    
+    // 创建模态窗口显示密钥库内容
+    const modal = document.createElement('div');
+    modal.className = 'key-database-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    `;
+    
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background: var(--bg);
+        border-radius: var(--radius);
+        padding: 2rem;
+        max-width: 80%;
+        max-height: 80%;
+        overflow-y: auto;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    `;
+    
+    let keysHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2 style="margin: 0; color: var(--text);">
+                <i class="fas fa-database"></i>
+                密钥库内容 (${keyDatabase.metadata.totalKeys} 个密钥)
+            </h2>
+            <button onclick="this.closest('.key-database-modal').remove()" style="background: var(--error); color: white; border: none; padding: 0.5rem 1rem; border-radius: var(--radius); cursor: pointer;">
+                <i class="fas fa-times"></i>
+                关闭
+            </button>
+        </div>
+        <div style="display: grid; gap: 1rem;">
+    `;
+    
+    Object.keys(keyDatabase.keys).forEach(uuid => {
+        const keyData = keyDatabase.keys[uuid];
+        keysHTML += `
+            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+                <div style="font-family: monospace; font-weight: bold; color: var(--text); margin-bottom: 0.5rem;">
+                    UUID: ${uuid}
+                </div>
+                <div style="font-family: monospace; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    密钥: ${keyData.key}
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                    来源: ${keyData.source || '未知'} | 
+                    添加时间: ${keyData.addedTime ? new Date(keyData.addedTime).toLocaleString() : '未知'}
+                    <button onclick="copyToClipboard('${keyData.key}', this)" style="margin-left: 1rem; background: var(--info); color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">
+                        <i class="fas fa-copy"></i> 复制
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    keysHTML += '</div>';
+    modalContent.innerHTML = keysHTML;
+    modal.appendChild(modalContent);
+    
+    // 点击背景关闭模态窗口
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+    
+    document.body.appendChild(modal);
+}
+
+// 处理解密模式下的ENT文件
+async function processDecryptEntFile(file) {
+    try {
+        showToast('正在解析ENT文件并保存密钥...', 'info');
+        
+        // 获取Minecraft ID
+        const minecraftId = document.getElementById('decryptMinecraftId').value.trim();
+        
+        // 创建FormData
+        const formData = new FormData();
+        formData.append('ent_file', file);
+        
+        if (minecraftId) {
+            formData.append('minecraft_id', minecraftId);
+        }
+        
+        formData.append('output_format', 'json');
+
+        // 发送请求解析ENT
+        const response = await fetch(`${API_BASE}/api/decrypt-ent`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // 保存密钥数据
+            entKeys = data.keys || [];
+            
+            // 添加密钥到本地数据库
+            addKeysToDatabase(entKeys);
+            
+            showToast(`ENT文件解析成功！已向密钥库添加密钥`, 'success');
+        } else {
+            throw new Error(data.error || 'ENT解析失败');
+        }
+        
+    } catch (error) {
+        showToast('ENT文件解析失败: ' + error.message, 'error');
+    }
 }
 
 // 文件上传设置
@@ -941,6 +966,12 @@ function setupFileUpload() {
     setupUploadZone('encryptUploadZone', ['encryptFolderInput', 'encryptFileInput']);
     // 解密模式的文件上传
     setupUploadZone('decryptUploadZone', ['decryptFolderInput', 'decryptFileInput']);
+    // 解密模式的ENT文件上传
+    setupUploadZone('decryptEntUploadZone', ['decryptEntInput']);
+    // ENT模式的文件上传
+    setupUploadZone('entUploadZone', ['entFileInput']);
+    // Options模式的文件上传
+    setupUploadZone('optionsUploadZone', ['optionsFileInput']);
 }
 
 function setupUploadZone(zoneId, inputIds) {
@@ -973,18 +1004,251 @@ function setupUploadZone(zoneId, inputIds) {
     });
 }
 
-// 处理文件选择（修改现有函数）
+// 处理文件选择
 async function handleFileSelect(event) {
     const files = Array.from(event.target.files);
-    await processSelectedFiles(files);
+    
+    // 检查是否是解密模式的ENT文件上传
+    if (event.target.id === 'decryptEntInput') {
+        if (files.length > 0) {
+            await processDecryptEntFile(files[0]);
+        }
+        return;
+    }
+    
+    if (currentMode === 'ent') {
+        // ENT模式只处理单个文件
+        if (files.length > 0) {
+            selectedFiles = [files[0]];
+            displayEntFile(files[0]);
+            updateProcessButton();
+        }
+    } else if (currentMode === 'options') {
+        // Options模式只处理单个文件
+        if (files.length > 0) {
+            selectedFiles = [files[0]];
+            await processOptionsFile(files[0]);
+            updateProcessButton();
+        }
+    } else {
+        await processSelectedFiles(files);
+    }
 }
 
-// 处理拖拽文件（修改现有函数）
+// 处理拖拽文件
 async function handleDroppedFiles(files) {
-    await processSelectedFiles(files);
+    if (currentMode === 'ent') {
+        // ENT模式只处理单个文件
+        const entFile = files.find(file => file.name.toLowerCase().endsWith('.ent'));
+        if (entFile) {
+            selectedFiles = [entFile];
+            displayEntFile(entFile);
+            updateProcessButton();
+        } else {
+            showToast('请选择.ent文件', 'error');
+        }
+    } else if (currentMode === 'options') {
+        // Options模式只处理单个文件
+        const txtFile = files.find(file => 
+            file.name.toLowerCase().endsWith('.txt') && 
+            file.name.toLowerCase().includes('options')
+        );
+        if (txtFile) {
+            selectedFiles = [txtFile];
+            await processOptionsFile(txtFile);
+            updateProcessButton();
+        } else {
+            showToast('请选择options.txt文件', 'error');
+        }
+    } else {
+        await processSelectedFiles(files);
+    }
 }
 
-// 处理选择的文件（新函数）
+// 处理Options.txt文件
+async function processOptionsFile(file) {
+    try {
+        // 先使用后端API解析
+        const formData = new FormData();
+        formData.append('options_file', file);
+        
+        const response = await fetch(`${API_BASE}/api/parse-options`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            optionsData = data.options;
+            const keyData = {
+                minecraftId: data.minecraft_id,
+                titleAccountId: data.title_account_id
+            };
+            
+            displayOptionsInfo(keyData, data.total_options);
+            
+            // 如果有关键信息，启用"传入ENT解密"按钮
+            if (keyData.minecraftId || keyData.titleAccountId) {
+                document.getElementById('useOptionsBtn').disabled = false;
+            }
+            
+            showToast('Options.txt文件解析成功', 'success');
+        } else {
+            throw new Error(data.error || '解析失败');
+        }
+        
+    } catch (error) {
+        showToast('解析Options.txt文件失败: ' + error.message, 'error');
+        
+        // 如果API失败，回退到本地解析
+        try {
+            const text = await file.text();
+            const lines = text.split('\n');
+            
+            optionsData = {};
+            const keyData = {};
+            
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+                if (trimmedLine && trimmedLine.includes(':')) {
+                    const [key, value] = trimmedLine.split(':', 2);
+                    const cleanKey = key.trim();
+                    const cleanValue = value.trim();
+                    
+                    optionsData[cleanKey] = cleanValue;
+                    
+                    // 提取关键信息
+                    if (cleanKey === 'last_minecraft_id') {
+                        keyData.minecraftId = cleanValue.toUpperCase();
+                    } else if (cleanKey === 'last_title_account_id') {
+                        keyData.titleAccountId = cleanValue.toUpperCase();
+                    }
+                }
+            });
+            
+            displayOptionsInfo(keyData, Object.keys(optionsData).length);
+            
+            // 如果有关键信息，启用"传入ENT解密"按钮
+            if (keyData.minecraftId || keyData.titleAccountId) {
+                document.getElementById('useOptionsBtn').disabled = false;
+            }
+            
+            showToast('Options.txt文件本地解析成功', 'success');
+            
+        } catch (localError) {
+            showToast('Options.txt文件解析完全失败: ' + localError.message, 'error');
+        }
+    }
+}
+
+// 显示Options信息
+function displayOptionsInfo(keyData, totalKeys) {
+    const optionsInfo = document.getElementById('optionsInfo');
+    const optionsDetails = document.getElementById('optionsDetails');
+    const accountInfo = document.getElementById('accountInfo');
+    
+    let detailsHTML = `
+        <div class="options-key-value">
+            <span class="options-key">配置项总数</span>
+            <span class="options-value">${totalKeys}</span>
+        </div>
+    `;
+    
+    // 优先显示 Title Account ID
+    if (keyData.titleAccountId) {
+        detailsHTML += `
+            <div class="options-key-value">
+                <span class="options-key">Title Account ID</span>
+                <span class="options-value">${keyData.titleAccountId}</span>
+            </div>
+        `;
+    }
+    
+    if (keyData.minecraftId) {
+        detailsHTML += `
+            <div class="options-key-value">
+                <span class="options-key">Minecraft ID</span>
+                <span class="options-value">${keyData.minecraftId}</span>
+            </div>
+        `;
+    }
+    
+    optionsDetails.innerHTML = detailsHTML;
+    
+    // 更新侧边栏账户信息，优先显示 Title Account ID
+    let accountHTML = '';
+    if (keyData.titleAccountId) {
+        accountHTML += `<div><strong>Title Account ID:</strong><br><code>${keyData.titleAccountId}</code></div>`;
+    }
+    if (keyData.minecraftId) {
+        accountHTML += `<div style="margin-top: 0.5rem;"><strong>Minecraft ID:</strong><br><code>${keyData.minecraftId}</code></div>`;
+    }
+    
+    if (!accountHTML) {
+        accountHTML = '<div style="text-align: center; color: var(--text-secondary);">未找到关键账户信息</div>';
+    }
+    
+    accountInfo.innerHTML = accountHTML;
+    optionsInfo.style.display = 'block';
+}
+
+// 使用Options数据进行ENT解密
+function useOptionsForEnt() {
+    if (!optionsData) {
+        showToast('请先上传options.txt文件', 'error');
+        return;
+    }
+    
+    // 优先使用 Title Account ID，其次使用 Minecraft ID
+    const titleAccountId = optionsData['last_title_account_id'];
+    const minecraftId = optionsData['last_minecraft_id'];
+    
+    const accountId = titleAccountId || minecraftId;
+    
+    if (!accountId) {
+        showToast('Options.txt中未找到有效的账户ID', 'error');
+        return;
+    }
+    
+    // 切换到ENT标签页
+    switchTab('ent');
+    
+    // 填入账户ID
+    document.getElementById('minecraftId').value = accountId.toUpperCase();
+    
+    const idType = titleAccountId ? 'Title Account ID' : 'Minecraft ID';
+    showToast(`${idType}已自动填入ENT解密页面`, 'success');
+}
+
+// 显示ENT文件信息
+function displayEntFile(file) {
+    const fileListSection = document.getElementById('fileListSection');
+    const fileList = document.getElementById('fileList');
+    const fileCount = document.getElementById('fileCount');
+
+    fileList.innerHTML = '';
+    fileCount.textContent = 1;
+
+    const fileItem = document.createElement('div');
+    fileItem.className = 'file-item';
+    fileItem.innerHTML = `
+        <div class="file-info">
+            <div class="file-icon" style="background: var(--info);">
+                <i class="fas fa-file-code"></i>
+            </div>
+            <div class="file-details">
+                <h4>${file.name}</h4>
+                <p>${formatFileSize(file.size)} • ENT授权文件</p>
+            </div>
+        </div>
+    `;
+    fileList.appendChild(fileItem);
+
+    fileListSection.style.display = 'block';
+}
+
+// 处理选择的文件（对于encrypt/decrypt模式）
 async function processSelectedFiles(files) {
     // 检查是否有ZIP文件
     const zipFiles = files.filter(file => 
@@ -1108,7 +1372,8 @@ function getFileType(fileName) {
         'wav': 'audio/wav',
         'ogg': 'audio/ogg',
         'mcmeta': 'application/json',
-        'mcfunction': 'text/plain'
+        'mcfunction': 'text/plain',
+        'ent': 'text/plain'
     };
     
     return typeMap[ext] || 'application/octet-stream';
@@ -1255,17 +1520,31 @@ function getFileIcon(filename) {
         case 'json': return 'fa-file-code';
         case 'png': case 'jpg': case 'jpeg': return 'fa-image';
         case 'zip': case 'mcpack': case 'mcworld': case 'mctemplate': return 'fa-file-archive';
+        case 'ent': return 'fa-file-code';
+        case 'txt': return 'fa-file-text';
         default: return 'fa-file';
     }
 }
 
 function updateProcessButton() {
     const processBtn = document.getElementById('processBtn');
-    processBtn.disabled = selectedFiles.length === 0;
+    
+    if (currentMode === 'options') {
+        // Options模式：如果已有数据，显示为已解析状态
+        if (optionsData) {
+            processBtn.disabled = false;
+            processBtn.innerHTML = '<i class="fas fa-check"></i> 已解析Options.txt';
+        } else {
+            processBtn.disabled = selectedFiles.length === 0;
+        }
+    } else {
+        processBtn.disabled = selectedFiles.length === 0;
+    }
 }
 
 function hideResults() {
     document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('entResultsSection').style.display = 'none';
     document.getElementById('downloadBtn').classList.add('hidden');
     document.getElementById('fileListSection').style.display = 'none';
     currentDownloadFilename = null;
@@ -1318,7 +1597,7 @@ async function generateKey() {
     }
 }
 
-// 重新打包为ZIP的辅助函数（如果需要发送给后端）
+// 重新打包为ZIP的辅助函数
 async function repackAsZip(files, zipName = 'extracted_files.zip') {
     const zip = new JSZip();
     
@@ -1331,14 +1610,22 @@ async function repackAsZip(files, zipName = 'extracted_files.zip') {
     return new File([zipBlob], zipName, {type: 'application/zip'});
 }
 
-// 处理文件（加密或解密）- 修改版本
+// 处理文件（加密、解密、ENT解析或Options解析）
 async function processFiles() {
     if (selectedFiles.length === 0) {
         showToast('请先选择文件', 'error');
         return;
     }
 
-    const customKey = document.getElementById('customKey').value;
+    if (currentMode === 'ent') {
+        return processEntFile();
+    } else if (currentMode === 'options') {
+        return processOptionsOnly();
+    }
+
+    const customKey = currentMode === 'decrypt' ? 
+        document.getElementById('manualDecryptKey').value : 
+        document.getElementById('customKey').value;
     const progressSection = document.getElementById('progressSection');
     const progressFill = document.getElementById('progressFill');
     const progressText = document.getElementById('progressText');
@@ -1350,7 +1637,7 @@ async function processFiles() {
     progressSection.style.display = 'block';
     processBtn.disabled = true;
     
-    const actionText = currentMode === 'encrypt' ? '加密' : '解密';
+    const actionText = currentMode === 'encrypt' ? '加密' : '智能解密';
     processBtn.innerHTML = `<span class="spinner"></span> ${actionText}中...`;
 
     try {
@@ -1408,9 +1695,185 @@ async function processFiles() {
     } finally {
         // 恢复按钮
         processBtn.disabled = false;
-        const icon = currentMode === 'encrypt' ? 'fa-lock' : 'fa-unlock';
-        const text = currentMode === 'encrypt' ? '开始加密' : '开始解密';
+        const icon = currentMode === 'encrypt' ? 'fa-lock' : 'fa-magic';
+        const text = currentMode === 'encrypt' ? '开始加密' : '智能解密';
         processBtn.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
+    }
+}
+
+// 处理Options.txt文件（仅解析）
+async function processOptionsOnly() {
+    if (optionsData) {
+        showToast('Options.txt文件已解析完成', 'info');
+        return;
+    }
+    
+    const file = selectedFiles[0];
+    await processOptionsFile(file);
+}
+
+// 处理ENT文件
+async function processEntFile() {
+    const entFile = selectedFiles[0];
+    const minecraftId = document.getElementById('minecraftId').value.trim();
+    const outputFormat = document.getElementById('entOutputFormat').value;
+    
+    const progressSection = document.getElementById('progressSection');
+    const processBtn = document.getElementById('processBtn');
+
+    // 重置UI
+    progressSection.style.display = 'block';
+    processBtn.disabled = true;
+    processBtn.innerHTML = `<span class="spinner"></span> 解析中...`;
+
+    try {
+        // 创建FormData
+        const formData = new FormData();
+        formData.append('ent_file', entFile);
+        
+        if (minecraftId) {
+            formData.append('minecraft_id', minecraftId);
+        }
+        
+        formData.append('output_format', outputFormat);
+
+        updateProgress(30, '正在上传ENT文件...');
+
+        // 发送请求
+        const response = await fetch(`${API_BASE}/api/decrypt-ent`, {
+            method: 'POST',
+            body: formData
+        });
+
+        updateProgress(70, '正在解析ENT文件...');
+
+        const data = await response.json();
+
+        if (data.success) {
+            updateProgress(100, 'ENT解析完成！');
+            
+            // 保存密钥数据并更新数据库
+            entKeys = data.keys || [];
+            addKeysToDatabase(entKeys);
+            
+            setTimeout(() => {
+                displayEntResult(data);
+                progressSection.style.display = 'none';
+            }, 1000);
+        } else {
+            throw new Error(data.error || 'ENT解析失败');
+        }
+
+    } catch (error) {
+        console.error('ENT解析失败:', error);
+        showToast('ENT解析失败: ' + error.message, 'error');
+        progressSection.style.display = 'none';
+    } finally {
+        // 恢复按钮
+        processBtn.disabled = false;
+        processBtn.innerHTML = '<i class="fas fa-key"></i> 解析ENT文件';
+    }
+}
+
+// 显示ENT解析结果
+function displayEntResult(data) {
+    const entResultsSection = document.getElementById('entResultsSection');
+    const fileListSection = document.getElementById('fileListSection');
+    const entResultInfo = document.getElementById('entResultInfo');
+    const keyList = document.getElementById('keyList');
+    const keyCount = document.getElementById('keyCount');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    // 隐藏文件列表窗口
+    fileListSection.style.display = 'none';
+
+    // 更新密钥数量
+    keyCount.textContent = data.keys ? data.keys.length : 0;
+
+    // 构建ENT文件信息
+    let infoHTML = `
+        <div class="pack-info-item">
+            <span class="pack-info-label">文件名</span>
+            <span class="pack-info-value">${selectedFiles[0].name}</span>
+        </div>
+        <div class="pack-info-item">
+            <span class="pack-info-label">文件大小</span>
+            <span class="pack-info-value">${formatFileSize(selectedFiles[0].size)}</span>
+        </div>
+        <div class="pack-info-item">
+            <span class="pack-info-label">文件类型</span>
+            <span class="pack-info-value">${data.file_type || '未知'}</span>
+        </div>
+        <div class="pack-info-item">
+            <span class="pack-info-label">保存密钥数</span>
+            <span class="pack-info-value">${data.keys ? data.keys.length : 0}</span>
+        </div>
+    `;
+
+    if (data.user_info) {
+        infoHTML += `
+            <div class="pack-info-item">
+                <span class="pack-info-label">用户ID</span>
+                <span class="pack-info-value" style="font-family: monospace; word-break: break-all;">${data.user_info.user_id || '未知'}</span>
+            </div>
+            <div class="pack-info-item">
+                <span class="pack-info-label">设备ID</span>
+                <span class="pack-info-value" style="font-family: monospace; word-break: break-all;">${data.user_info.device_id || '未知'}</span>
+            </div>
+        `;
+    }
+
+    entResultInfo.innerHTML = infoHTML;
+
+    // 显示密钥列表
+    keyList.innerHTML = '';
+    
+    if (data.keys && data.keys.length > 0) {
+        data.keys.forEach((key, index) => {
+            const keyItem = document.createElement('div');
+            keyItem.className = 'key-item';
+            keyItem.innerHTML = `
+                <div class="key-info">
+                    <div class="key-uuid">${key.id || key.uuid || `密钥 ${index + 1}`}</div>
+                    <div class="key-value">${key.contentKey || key.content_key || '未知密钥'}</div>
+                </div>
+                <button class="copy-btn" onclick="copyToClipboard('${key.contentKey || key.content_key || ''}', this)">
+                    <i class="fas fa-copy"></i>
+                    复制
+                </button>
+            `;
+            keyList.appendChild(keyItem);
+        });
+    } else {
+        keyList.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">未找到任何密钥</div>';
+    }
+
+    // 设置下载功能
+    if (data.download_filename) {
+        currentDownloadFilename = data.download_filename;
+        downloadBtn.classList.remove('hidden');
+    }
+
+    entResultsSection.style.display = 'block';
+    showToast(`ENT文件解析成功！已保存 ${data.keys ? data.keys.length : 0} 个密钥到数据库`, 'success');
+}
+
+// 复制到剪贴板
+async function copyToClipboard(text, button) {
+    try {
+        await navigator.clipboard.writeText(text);
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> 已复制';
+        button.style.background = 'var(--success)';
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.style.background = 'var(--info)';
+        }, 2000);
+        
+        showToast('密钥已复制到剪贴板', 'success');
+    } catch (error) {
+        showToast('复制失败: ' + error.message, 'error');
     }
 }
 
@@ -1435,6 +1898,9 @@ function displayProcessResult(data) {
     const downloadBtn = document.getElementById('downloadBtn');
     const resultTitle = document.getElementById('resultTitle');
     const processedLabel = document.getElementById('processedLabel');
+    const keyMatchingStatus = document.getElementById('keyMatchingStatus');
+    const keyMatchingText = document.getElementById('keyMatchingText');
+    const keyLabel = document.getElementById('keyLabel');
 
     // 隐藏文件列表窗口
     fileListSection.style.display = 'none';
@@ -1444,10 +1910,23 @@ function displayProcessResult(data) {
         resultTitle.textContent = '加密结果';
         processedLabel.textContent = '加密文件数';
         processedFiles.textContent = data.encrypted_files || 0;
+        keyLabel.textContent = '生成密钥';
+        keyMatchingStatus.style.display = 'none';
     } else {
-        resultTitle.textContent = '解密结果';
+        resultTitle.textContent = '智能解密结果';
         processedLabel.textContent = '解密文件数';
         processedFiles.textContent = data.decrypted_files || 0;
+        keyLabel.textContent = '匹配密钥';
+        
+        // 显示密钥匹配状态
+        keyMatchingStatus.style.display = 'flex';
+        if (data.pack_uuid && data.used_key) {
+            keyMatchingText.textContent = '智能匹配成功';
+            keyMatchingStatus.style.color = 'var(--success)';
+        } else {
+            keyMatchingText.textContent = '使用默认密钥';
+            keyMatchingStatus.style.color = 'var(--warning)';
+        }
     }
 
     // 更新统计数据
@@ -1460,7 +1939,7 @@ function displayProcessResult(data) {
         packageName.textContent = '未知';
     }
     
-    const keyValue = data.content_key || 's5s5ejuDru4uchuF2drUFuthaspAbepE';
+    const keyValue = data.content_key || data.used_key || 's5s5ejuDru4uchuF2drUFuthaspAbepE';
     operationKey.textContent = keyValue.substring(0, 8) + '...';
     operationKey.title = keyValue;
 
@@ -1491,10 +1970,20 @@ function displayProcessResult(data) {
     
     detailsHTML += `
         <div class="pack-info-item">
-            <span class="pack-info-label">使用密钥</span>
+            <span class="pack-info-label">${currentMode === 'encrypt' ? '生成密钥' : '使用密钥'}</span>
             <span class="pack-info-value" style="font-family: monospace; word-break: break-all;">${keyValue}</span>
         </div>
     `;
+
+    // 如果是解密模式，显示密钥匹配详情
+    if (currentMode === 'decrypt') {
+        detailsHTML += `
+            <div class="pack-info-item">
+                <span class="pack-info-label">密钥来源</span>
+                <span class="pack-info-value">${data.pack_uuid ? 'UUID智能匹配' : '默认密钥'}</span>
+            </div>
+        `;
+    }
 
     packDetailsInfo.innerHTML = detailsHTML;
 
@@ -1505,7 +1994,7 @@ function displayProcessResult(data) {
     }
 
     resultsSection.style.display = 'block';
-    const actionText = currentMode === 'encrypt' ? '加密' : '解密';
+    const actionText = currentMode === 'encrypt' ? '加密' : '智能解密';
     showToast(`包${actionText}成功！`, 'success');
 }
 
@@ -1603,5 +2092,181 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 </script>
+
+<style>
+/* 添加一些新的样式 */
+.ent-workflow-info {
+    --info-bg: rgba(59, 130, 246, 0.1);
+}
+
+.workflow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.workflow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.step-number {
+    background: var(--info);
+    color: white;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.step-content strong {
+    color: var(--text);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.step-content p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.key-database-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 0.5rem;
+}
+
+.status-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.status-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.status-value {
+    font-weight: bold;
+    color: var(--text);
+}
+
+.smart-decrypt-info {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+}
+
+.priority-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.priority-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.priority-number {
+    background: var(--info);
+    color: white;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.priority-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.key-library-status {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.status-header {
+    background: var(--info);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.status-content {
+    padding: 0.75rem;
+}
+
+.status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.status-row:last-child {
+    margin-bottom: 0;
+}
+
+.status-row span:first-child {
+    color: var(--text-secondary);
+}
+
+.status-row span:last-child {
+    color: var(--text);
+    font-weight: bold;
+}
+
+.key-matching-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--success);
+    font-size: 0.9rem;
+}
+
+.database-save-notice {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid var(--success);
+    border-radius: var(--radius);
+    padding: 1rem;
+}
+
+.database-save-notice h4 {
+    color: var(--success);
+    margin-bottom: 0.5rem;
+}
+
+.database-save-notice p {
+    color: var(--success);
+    margin: 0;
+}
+</style>
 </body>
 </html>
