@@ -14,7 +14,7 @@
   --radius-lg: 12px;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --transition: all 0.2s ease;
+  --transition: all 0.2 ease;
 }
 
 [data-theme="dark"] {
@@ -167,7 +167,7 @@ body {
   border: 2px solid transparent;
   border-top: 2px solid currentColor;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 1 linear infinite;
 }
 
 @keyframes spin {
@@ -554,7 +554,7 @@ body {
 .progress-bar {
     height: 100%;
     background: linear-gradient(90deg, #000, #000);
-    transition: width 0.3s ease;
+    transition: width 0.3 ease;
     width: 0%;
 }
 
@@ -601,7 +601,7 @@ body {
     padding: 1rem;
     border-radius: var(--radius);
     box-shadow: var(--shadow-md);
-    animation: slideIn 0.3s ease;
+    animation: slideIn 0.3 ease;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -654,11 +654,7 @@ body {
     padding: 1.5rem;
 }
 
-/* ENT特定样式 */
-.ent-info-card {
-    background: linear-gradient(135deg, var(--bg), rgba(59, 130, 246, 0.05));
-    border: 1px solid rgba(59, 130, 246, 0.2);
-}
+
 
 .key-list {
     max-height: 300px;
