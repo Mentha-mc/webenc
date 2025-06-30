@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -6,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Minecraft包加密/解密工具</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
 <link rel="stylesheet" href="./main.css">
 </head>
 <body>
@@ -89,8 +87,8 @@
                     <div class="upload-icon">
                         <i class="fas fa-cloud-upload-alt"></i>
                     </div>
-                    <h3>拖拽文件夹到这里</h3>
-                    <p>或者点击下方按钮选择文件</p>
+                    <h3>拖拽文件夹或ZIP文件到这里</h3>
+                    <p>支持文件夹、ZIP、MCPACK等格式，后端自动处理</p>
                     <div class="upload-buttons">
                         <button class="btn btn-primary" onclick="document.getElementById('encryptFolderInput').click()">
                             <i class="fas fa-folder-open"></i>
@@ -102,7 +100,7 @@
                         </button>
                     </div>
                     <input type="file" id="encryptFolderInput" webkitdirectory multiple style="display: none;">
-                    <input type="file" id="encryptFileInput" accept=".zip,.mcpack" style="display: none;">
+                    <input type="file" id="encryptFileInput" accept=".zip,.mcpack,.mcworld,.mctemplate" style="display: none;">
                 </div>
             </div>
         </div>
@@ -123,7 +121,7 @@
                         <i class="fas fa-cloud-upload-alt"></i>
                     </div>
                     <h3>拖拽加密包到这里</h3>
-                    <p>系统会自动匹配最佳密钥进行解密</p>
+                    <p>系统会自动匹配最佳密钥进行解密，支持文件夹和ZIP格式</p>
                     <div class="upload-buttons">
                         <button class="btn btn-primary" onclick="document.getElementById('decryptFolderInput').click()">
                             <i class="fas fa-folder-open"></i>
@@ -135,7 +133,7 @@
                         </button>
                     </div>
                     <input type="file" id="decryptFolderInput" webkitdirectory multiple style="display: none;">
-                    <input type="file" id="decryptFileInput" accept=".zip,.mcpack" style="display: none;">
+                    <input type="file" id="decryptFileInput" accept=".zip,.mcpack,.mcworld,.mctemplate" style="display: none;">
                 </div>
                 
                 <!-- 密钥数据库状态 -->
@@ -543,10 +541,8 @@
 const API_BASE = 'https://www.menthamc.club:5000';
 
 let selectedFiles = [];
-let extractedFiles = [];
 let currentDownloadFilename = null;
 let currentMode = 'encrypt'; // 'encrypt', 'decrypt', 'ent', or 'options'
-let isProcessingZip = false;
 let optionsData = null; // 存储options.txt数据
 let entKeys = []; // 存储ENT解析出的密钥
 let keyDatabaseCount = 0; // 密钥数据库中的密钥数量
@@ -623,7 +619,6 @@ function switchTab(mode) {
     
     // 重置文件选择
     selectedFiles = [];
-    extractedFiles = [];
     
     updateProcessButton();
     
@@ -1001,7 +996,10 @@ async function handleFileSelect(event) {
             updateProcessButton();
         }
     } else {
-        await processSelectedFiles(files);
+        // 加密/解密模式 - 直接处理所有文件
+        selectedFiles = files;
+        displayFileList(files);
+        updateProcessButton();
     }
 }
 
@@ -1031,7 +1029,10 @@ async function handleDroppedFiles(files) {
             showToast('请选择options.txt文件', 'error');
         }
     } else {
-        await processSelectedFiles(files);
+        // 加密/解密模式 - 直接处理所有文件
+        selectedFiles = files;
+        displayFileList(files);
+        updateProcessButton();
     }
 }
 
@@ -1218,138 +1219,7 @@ function displayEntFile(file) {
     fileListSection.style.display = 'block';
 }
 
-// 处理选择的文件（对于encrypt/decrypt模式）
-async function processSelectedFiles(files) {
-    // 检查是否有ZIP文件
-    const zipFiles = files.filter(file => 
-        file.name.toLowerCase().endsWith('.zip') || 
-        file.name.toLowerCase().endsWith('.mcpack')
-    );
-    
-    if (zipFiles.length > 0) {
-        // 如果有ZIP文件，先解压
-        await handleZipFiles(zipFiles, files);
-    } else {
-        // 没有ZIP文件，直接处理
-        selectedFiles = files;
-        displayFileList(files);
-        updateProcessButton();
-    }
-}
-
-// 处理ZIP文件
-async function handleZipFiles(zipFiles, allFiles) {
-    if (isProcessingZip) {
-        showToast('正在处理ZIP文件，请稍候...', 'warning');
-        return;
-    }
-    
-    isProcessingZip = true;
-    showToast('正在解压ZIP文件...', 'info');
-    
-    try {
-        extractedFiles = [];
-        const nonZipFiles = allFiles.filter(file => 
-            !file.name.toLowerCase().endsWith('.zip') && 
-            !file.name.toLowerCase().endsWith('.mcpack')
-        );
-        
-        // 添加非ZIP文件
-        extractedFiles.push(...nonZipFiles);
-        
-        // 处理每个ZIP文件
-        for (const zipFile of zipFiles) {
-            const extractedFromZip = await extractZipFile(zipFile);
-            extractedFiles.push(...extractedFromZip);
-        }
-        
-        // 显示解压结果
-        selectedFiles = extractedFiles;
-        displayFileList(extractedFiles);
-        updateProcessButton();
-        
-        showToast(`成功解压 ${zipFiles.length} 个ZIP文件，共提取 ${extractedFiles.length} 个文件`, 'success');
-        
-    } catch (error) {
-        console.error('ZIP文件处理失败:', error);
-        showToast('ZIP文件解压失败: ' + error.message, 'error');
-        
-        // 如果解压失败，回退到原始文件
-        selectedFiles = allFiles;
-        displayFileList(allFiles);
-        updateProcessButton();
-    } finally {
-        isProcessingZip = false;
-    }
-}
-
-// 解压单个ZIP文件
-async function extractZipFile(zipFile) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        
-        reader.onload = async function(e) {
-            try {
-                const zip = new JSZip();
-                const zipData = await zip.loadAsync(e.target.result);
-                const extractedFiles = [];
-                
-                // 遍历ZIP中的所有文件
-                for (const [fileName, fileObj] of Object.entries(zipData.files)) {
-                    // 跳过目录
-                    if (fileObj.dir) continue;
-                    
-                    // 获取文件内容
-                    const fileContent = await fileObj.async('blob');
-                    
-                    // 创建新的File对象
-                    const extractedFile = new File([fileContent], fileName, {
-                        type: getFileType(fileName),
-                        lastModified: fileObj.date ? fileObj.date.getTime() : Date.now()
-                    });
-                    
-                    // 添加原始ZIP文件信息
-                    extractedFile.sourceZip = zipFile.name;
-                    extractedFile.originalPath = fileName;
-                    
-                    extractedFiles.push(extractedFile);
-                }
-                
-                resolve(extractedFiles);
-            } catch (error) {
-                reject(new Error(`解压 ${zipFile.name} 失败: ${error.message}`));
-            }
-        };
-        
-        reader.onerror = () => reject(new Error(`读取 ${zipFile.name} 失败`));
-        reader.readAsArrayBuffer(zipFile);
-    });
-}
-
-// 根据文件名判断MIME类型
-function getFileType(fileName) {
-    const ext = fileName.split('.').pop().toLowerCase();
-    const typeMap = {
-        'json': 'application/json',
-        'png': 'image/png',
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'gif': 'image/gif',
-        'txt': 'text/plain',
-        'js': 'text/javascript',
-        'css': 'text/css',
-        'html': 'text/html',
-        'wav': 'audio/wav',
-        'ogg': 'audio/ogg',
-        'mcmeta': 'application/json',
-        'mcfunction': 'text/plain',
-        'ent': 'text/plain'
-    };
-    
-    return typeMap[ext] || 'application/octet-stream';
-}
-
-// 修改显示文件列表函数，显示解压信息
+// 显示文件列表（简化版本，不处理ZIP解压）
 function displayFileList(files) {
     const fileListSection = document.getElementById('fileListSection');
     const fileList = document.getElementById('fileList');
@@ -1358,103 +1228,28 @@ function displayFileList(files) {
     fileList.innerHTML = '';
     fileCount.textContent = files.length;
 
-    // 统计ZIP来源
-    const zipSources = {};
-    const regularFiles = [];
-    
-    files.forEach(file => {
-        if (file.sourceZip) {
-            if (!zipSources[file.sourceZip]) {
-                zipSources[file.sourceZip] = [];
-            }
-            zipSources[file.sourceZip].push(file);
-        } else {
-            regularFiles.push(file);
-        }
-    });
-
     let displayCount = 0;
     const maxDisplay = 20;
 
-    // 显示ZIP来源的文件
-    for (const [zipName, zipFiles] of Object.entries(zipSources)) {
-        if (displayCount >= maxDisplay) break;
-        
-        // ZIP文件组标题
-        const zipGroupItem = document.createElement('div');
-        zipGroupItem.className = 'file-item';
-        zipGroupItem.style.backgroundColor = 'var(--bg)';
-        zipGroupItem.innerHTML = `
-            <div class="file-info">
-                <div class="file-icon" style="background: var(--info);">
-                    <i class="fas fa-file-archive"></i>
-                </div>
-                <div class="file-details">
-                    <h4>📦 ${zipName}</h4>
-                    <p>包含 ${zipFiles.length} 个文件</p>
-                </div>
-            </div>
-        `;
-        fileList.appendChild(zipGroupItem);
-        displayCount++;
-
-        // 显示ZIP中的文件（最多显示5个）
-        const filesToShow = zipFiles.slice(0, 5);
-        filesToShow.forEach(file => {
-            if (displayCount >= maxDisplay) return;
-            
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
-            fileItem.style.marginLeft = '20px';
-            fileItem.innerHTML = `
-                <div class="file-info">
-                    <div class="file-icon">
-                        <i class="fas ${getFileIcon(file.name)}"></i>
-                    </div>
-                    <div class="file-details">
-                        <h4>${file.originalPath || file.name}</h4>
-                        <p>${formatFileSize(file.size)} • 来自ZIP</p>
-                    </div>
-                </div>
-            `;
-            fileList.appendChild(fileItem);
-            displayCount++;
-        });
-
-        // 如果ZIP中文件太多，显示省略信息
-        if (zipFiles.length > 5) {
-            const moreItem = document.createElement('div');
-            moreItem.className = 'file-item';
-            moreItem.style.marginLeft = '20px';
-            moreItem.style.opacity = '0.7';
-            moreItem.innerHTML = `
-                <div class="file-info">
-                    <div class="file-icon">
-                        <i class="fas fa-ellipsis-h"></i>
-                    </div>
-                    <div class="file-details">
-                        <h4>还有 ${zipFiles.length - 5} 个文件...</h4>
-                        <p>来自 ${zipName}</p>
-                    </div>
-                </div>
-            `;
-            fileList.appendChild(moreItem);
-            displayCount++;
-        }
-    }
-
-    // 显示常规文件
-    regularFiles.slice(0, maxDisplay - displayCount).forEach(file => {
+    // 显示文件列表
+    files.slice(0, maxDisplay).forEach(file => {
         const fileItem = document.createElement('div');
         fileItem.className = 'file-item';
+        
+        // 检查是否是ZIP文件
+        const isZip = file.name.toLowerCase().endsWith('.zip') || 
+                     file.name.toLowerCase().endsWith('.mcpack') ||
+                     file.name.toLowerCase().endsWith('.mcworld') ||
+                     file.name.toLowerCase().endsWith('.mctemplate');
+        
         fileItem.innerHTML = `
             <div class="file-info">
-                <div class="file-icon">
+                <div class="file-icon" style="background: ${isZip ? 'var(--info)' : 'var(--primary)'};">
                     <i class="fas ${getFileIcon(file.name)}"></i>
                 </div>
                 <div class="file-details">
-                    <h4>${file.name}</h4>
-                    <p>${formatFileSize(file.size)}</p>
+                    <h4>${file.webkitRelativePath || file.name}</h4>
+                    <p>${formatFileSize(file.size)}${isZip ? ' • 将由后端处理' : ''}</p>
                 </div>
             </div>
         `;
@@ -1474,7 +1269,7 @@ function displayFileList(files) {
                 </div>
                 <div class="file-details">
                     <h4>还有 ${remainingFiles} 个文件...</h4>
-                    <p>点击查看全部</p>
+                    <p>后端将自动处理</p>
                 </div>
             </div>
         `;
@@ -1567,19 +1362,6 @@ async function generateKey() {
     }
 }
 
-// 重新打包为ZIP的辅助函数
-async function repackAsZip(files, zipName = 'extracted_files.zip') {
-    const zip = new JSZip();
-    
-    for (const file of files) {
-        const fileName = file.originalPath || file.webkitRelativePath || file.name;
-        zip.file(fileName, file);
-    }
-    
-    const zipBlob = await zip.generateAsync({type: 'blob'});
-    return new File([zipBlob], zipName, {type: 'application/zip'});
-}
-
 // 处理文件（加密、解密、ENT解析或Options解析）
 async function processFiles() {
     if (selectedFiles.length === 0) {
@@ -1614,17 +1396,10 @@ async function processFiles() {
         // 创建FormData
         const formData = new FormData();
         
-        // 如果有解压的文件，需要重新打包为ZIP
-        if (selectedFiles.some(file => file.sourceZip)) {
-            updateProgress(10, '正在重新打包文件...');
-            const repackedZip = await repackAsZip(selectedFiles, 'processed_files.zip');
-            formData.append('files', repackedZip);
-        } else {
-            // 添加原始文件
-            selectedFiles.forEach(file => {
-                formData.append('files', file);
-            });
-        }
+        // 直接添加所有文件到FormData
+        selectedFiles.forEach(file => {
+            formData.append('files', file);
+        });
         
         // 添加自定义密钥
         if (customKey.trim()) {
